@@ -14,31 +14,42 @@ from transformers import AutoTokenizer
 import requests
 from utils.reporting import upload_results
 
+from slip.auth import get_auth
+
 tokenizer = AutoTokenizer.from_pretrained("codellama/CodeLlama-7b-hf")
 
 
 def process_row(row, api_url, num_beams):
+    auth = get_auth(client_url=api_url)
+
     start_time = time()
     r = requests.post(
         api_url,
         json={
-            "prompt": row["prompt"],
-            "n": 1,
-            "use_beam_search": num_beams > 1,
-            "best_of": num_beams,
-            "temperature": 0,
-            "stop": [";", "```"],
-            "max_tokens": 600,
+            "inputs": row["prompt"],
+            "parameters": {
+                "n": 1,
+                "use_beam_search": num_beams > 1,
+                "best_of": num_beams,
+                "temperature": 0.1,
+                "stop": [";", "```"],
+                "max_tokens": 600,
+            },
         },
+        headers=auth.get_headers(),
     )
     end_time = time()
     if "[SQL]" not in row["prompt"]:
         generated_query = (
-            r.json()["text"][0].split("```")[-1].split("```")[0].split(";")[0].strip()
+            r.json()["generated_text"][0]
+            .split("```")[-1]
+            .split("```")[0]
+            .split(";")[0]
+            .strip()
             + ";"
         )
     else:
-        generated_query = r.json()["text"][0]
+        generated_query = r.json()["generated_text"][0]
         if "[SQL]" in generated_query:
             generated_query = generated_query.split("[SQL]")[1].strip()
         else:

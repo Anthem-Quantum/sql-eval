@@ -1,10 +1,10 @@
 accelerate
-anthropic
+# anthropic
 argparse
 git+https://github.com/defog-ai/defog-data.git
 func_timeout
-mistralai
-openai>=1.1.0
+# mistralai
+# openai>=1.1.0
 pandas
 pandas-gbq
 peft
@@ -20,4 +20,4 @@ torch
 tqdm
 transformers
 sqlparse
-vllm; sys_platform != 'darwin'
+# vllm; sys_platform != 'darwin'
