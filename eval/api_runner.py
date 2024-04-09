@@ -41,7 +41,7 @@ def process_row(row, api_url, num_beams):
     end_time = time()
     if "[SQL]" not in row["prompt"]:
         generated_query = (
-            r.json()["generated_text"][0]
+            r.json()["generated_text"]
             .split("```")[-1]
             .split("```")[0]
             .split(";")[0]
@@ -49,7 +49,7 @@ def process_row(row, api_url, num_beams):
             + ";"
         )
     else:
-        generated_query = r.json()["generated_text"][0]
+        generated_query = r.json()["generated_text"]
         if "[SQL]" in generated_query:
             generated_query = generated_query.split("[SQL]")[1].strip()
         else:
@@ -83,7 +83,6 @@ def process_row(row, api_url, num_beams):
     except Exception as e:
         row["error_db_exec"] = 1
         row["error_msg"] = f"QUERY EXECUTION ERROR: {e}"
-
     return row
 
 
