@@ -1,3 +1,4 @@
+import os
 import time
 from typing import Dict, List
 
@@ -9,7 +10,22 @@ import tiktoken
 from query_generators.query_generator import QueryGenerator
 from utils.pruning import prune_metadata_str, to_prompt_schema
 
-openai = OpenAI()
+from slip.auth import get_auth
+
+CLIENT_URL = os.environ["SLIP_CLIENT_URL"]
+slip_auth = get_auth(
+    login=True,
+    url=os.environ["SLIP_AUTH_URL"],
+    password=os.environ["SLIP_PASSWORD"],
+    username=os.environ["SLIP_USERNAME"],
+    client_url=CLIENT_URL,
+)
+SLIP_API_KEY = slip_auth.get_headers()["Authorization"].split("Bearer ")[-1]
+
+openai = OpenAI(
+    base_url=f"{CLIENT_URL}/v1",
+    api_key=SLIP_API_KEY,
+)
 
 
 class OpenAIQueryGenerator(QueryGenerator):
@@ -50,15 +66,17 @@ class OpenAIQueryGenerator(QueryGenerator):
     ):
         """Get OpenAI chat completion for a given prompt and model"""
         generated_text = ""
+        messages.pop(-1)  # Must drop the assistant message
         try:
             completion = openai.chat.completions.create(
                 model=model,
                 messages=messages,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                stop=stop,
-                logit_bias=logit_bias,
+                max_tokens=600,  # max_tokens,
+                temperature=0.1,  # temperature,
+                stop=None,  # [";", "```"],  # stop,
+                # logit_bias=logit_bias,
                 seed=seed,
+                stream=False,
             )
             generated_text = completion.choices[0].message.content
         except Exception as e:
@@ -216,7 +234,7 @@ class OpenAIQueryGenerator(QueryGenerator):
         if self.model == "text-davinci-003":
             tokens_used = self.count_tokens(self.model, prompt=prompt)
         else:
-            tokens_used = self.count_tokens(self.model, messages=messages)
+            tokens_used = self.count_tokens("gpt-4", messages=messages)
 
         return {
             "table_metadata_string": table_metadata_string,

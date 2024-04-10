@@ -55,7 +55,10 @@ if __name__ == "__main__":
         from eval.openai_runner import run_openai_eval
 
         if args.model is None:
-            args.model = "gpt-3.5-turbo-0613"
+            if "SLIP_MODEL_ID" in os.environ:
+                args.model = os.environ["SLIP_MODEL_ID"]
+            else:
+                args.model = "gpt-3.5-turbo-0613"
         run_openai_eval(args)
     elif args.model_type == "anthropic":
         from eval.anthropic_runner import run_anthropic_eval
