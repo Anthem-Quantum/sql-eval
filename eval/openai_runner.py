@@ -20,7 +20,7 @@ def run_openai_eval(args):
         f"Using {'all' if args.num_questions is None else args.num_questions} questions from {args.questions_file}"
     )
     question_query_df = prepare_questions_df(
-        args.questions_file, args.db_type, args.num_questions, args.k_shot
+        args.questions_file, args.db_type, args.db_name, args.num_questions, args.k_shot
     )
     for prompt_file, output_file in zip(args.prompt_file, args.output_file):
         input_rows = question_query_df.to_dict("records")

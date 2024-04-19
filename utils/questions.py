@@ -5,10 +5,13 @@ import pandas as pd
 def prepare_questions_df(
     questions_file: str,
     db_type: str,
+    db_name: str,
     num_questions: Optional[int] = None,
     k_shot: bool = False,
 ):
     question_query_df = pd.read_csv(questions_file, nrows=num_questions)
+    if db_name != "NA":
+        question_query_df = question_query_df[question_query_df["db_name"] == db_name]
     question_query_df["db_type"] = db_type
     question_query_df["generated_query"] = ""
     question_query_df["reason"] = ""
